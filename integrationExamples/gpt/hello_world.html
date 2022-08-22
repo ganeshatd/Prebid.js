@@ -57,7 +57,7 @@
             pbjs.adserverRequestSent = true;
             googletag.cmd.push(function() {
                 pbjs.que.push(function() {
-                    pbjs.setTargetingForGPTAsync();
+                    pbjs.setTargetingForGPTAsync('div-gpt-ad-1460505748561-0', null, 0.30)
                     googletag.pubads().refresh();
                 });
             });

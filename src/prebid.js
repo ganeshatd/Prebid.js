@@ -390,7 +390,10 @@ $$PREBID_GLOBAL$$.getBidResponsesForAdUnitCode = function (adUnitCode) {
  * @param {function(object)} customSlotMatching gets a GoogleTag slot and returns a filter function for adUnitCode, so you can decide to match on either eg. return slot => { return adUnitCode => { return slot.getSlotElementId() === 'myFavoriteDivId'; } };
  * @alias module:pbjs.setTargetingForGPTAsync
  */
-$$PREBID_GLOBAL$$.setTargetingForGPTAsync = function (adUnit, customSlotMatching) {
+$$PREBID_GLOBAL$$.setTargetingForGPTAsync = function (adUnit, customSlotMatching, inflateAdUnit) {
+  // pbjs.setConfig({
+  //   debugging: {enabled: true }
+  // })
   logInfo('Invoking $$PREBID_GLOBAL$$.setTargetingForGPTAsync', arguments);
   if (!isGptPubadsDefined()) {
     logError('window.googletag is not defined on the page');
@@ -404,16 +407,18 @@ $$PREBID_GLOBAL$$.setTargetingForGPTAsync = function (adUnit, customSlotMatching
   targeting.resetPresetTargeting(adUnit, customSlotMatching);
 
   // now set new targeting keys
-  targeting.setTargetingForGPT(targetingSet, customSlotMatching);
-
   Object.keys(targetingSet).forEach((adUnitCode) => {
     Object.keys(targetingSet[adUnitCode]).forEach((targetingKey) => {
       if (targetingKey === 'hb_adid') {
+        if (inflateAdUnit > 0) {
+          targetingSet[adUnitCode].hb_pb = (parseFloat(targetingSet[adUnitCode].hb_pb) + parseFloat(inflateAdUnit)).toString();
+          targetingSet[adUnitCode].hb_pb_appnexus = (parseFloat(targetingSet[adUnitCode].hb_pb_appnexus) + parseFloat(inflateAdUnit)).toString();
+        }
         auctionManager.setStatusForBids(targetingSet[adUnitCode][targetingKey], CONSTANTS.BID_STATUS.BID_TARGETING_SET);
       }
     });
   });
-
+  targeting.setTargetingForGPT(targetingSet, customSlotMatching);
   // emit event
   events.emit(SET_TARGETING, targetingSet);
 };
