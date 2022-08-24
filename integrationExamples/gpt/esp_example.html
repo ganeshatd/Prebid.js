@@ -3,7 +3,7 @@
 <head>
     <link rel="icon" type="image/png" href="/favicon.png">
     <script async src="//www.googletagservices.com/tag/js/gpt.js"></script>
-    <script async src="prebid.js"></script>
+    <script async src="../../build/dev/prebid.js"></script>
 
     <script>
         var div_1_sizes = [
@@ -17,6 +17,34 @@
         var PREBID_TIMEOUT = 1000;
         var FAILSAFE_TIMEOUT = 3000;
         var adUnits = [
+            {
+                code: '/19968336/header-bid-tag-0',
+                mediaTypes: {
+                    banner: {
+                        sizes: div_2_sizes
+                    }
+                },
+                bids: [{
+                    bidder: 'appnexus',
+                    params: {
+                        placementId: 13144370
+                    }
+                    }, {
+                    bidder: 'sovrn',
+                    params: {
+                        publisherId: '5890',
+                        adSlot: '/43743431/DMDemo@728x90:0',
+                        pmzoneid: 'zone1',
+                        lat: '40.712775',
+                        lon: '-74.005973',
+                        yob: '1982',
+                        kadpageurl: 'www.yahoo.com',
+                        gender: 'M',
+                        kadfloor: '1.75',
+                        bcat: ['IAB1-1', 'IAB1-2']
+                    }
+                }]
+            },            
             {
                 code: '/19968336/header-bid-tag-1',
                 mediaTypes: {
@@ -60,6 +88,24 @@
         pbjs.que.push(function () {
             pbjs.addAdUnits(adUnits);
             pbjs.setConfig({
+                debugging: {
+                    enabled: true,
+                    intercept: [
+                        {
+                            when: (bidRequest) => {console.log('-*'); console.log(bidRequest);return bidRequest.bidder === 'appnexus'},
+                            then: {
+                                cpm: 20
+                            }
+                        },
+                        {
+                            when: (bidRequest) => bidRequest.adUnitCode === '/19968336/header-bid-tag-1',
+                            then: {
+                                cpm: 20
+                            }
+                        },                        
+                    ]
+
+                },
                 userSync: {
                     filterSettings: { iframe: { bidders: '*', filter: 'include' } },
                     enabledBidders: ['pubmatic'],
@@ -126,7 +172,8 @@
             pbjs.initAdserverSet = true;
             googletag.cmd.push(function () {
                 pbjs.que.push(function () {
-                    pbjs.setTargetingForGPTAsync();
+                    // pbjs.setTargetingForGPTAsync();
+                    pbjs.setTargetingForGPTAsync(['/19968336/header-bid-tag-1', '/19968336/header-bid-tag-0'], null, 0.5);                    
                     pbjs.registerSignalSources();
                     googletag.pubads().refresh();
                 });
