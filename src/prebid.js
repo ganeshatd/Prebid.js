@@ -402,13 +402,12 @@ $$PREBID_GLOBAL$$.setTargetingForGPTAsync = function (adUnit, customSlotMatching
 
   // first reset any old targeting
   targeting.resetPresetTargeting(adUnit, customSlotMatching);
-
   Object.keys(targetingSet).forEach((adUnitCode) => {
     Object.keys(targetingSet[adUnitCode]).forEach((targetingKey) => {
       if (targetingKey === 'hb_adid') {  
         let wb_bidder = 'hb_pb_' + targetingSet[adUnitCode].hb_bidder
-        targetingSet[adUnitCode][wb_bidder] = (parseFloat(targetingSet[adUnitCode][wb_bidder]) + parseFloat(inflateAdUnit || 0)).toString();
-        targetingSet[adUnitCode]['hb_pb'] = (parseFloat(targetingSet[adUnitCode]['hb_pb']) + parseFloat(inflateAdUnit || 0)).toString();              
+        targetingSet[adUnitCode][wb_bidder] = (parseFloat(targetingSet[adUnitCode][wb_bidder]) + ((parseFloat(targetingSet[adUnitCode][wb_bidder]) * parseFloat(inflateAdUnit || 1))/100)).toFixed(2).toString();
+        targetingSet[adUnitCode]['hb_pb'] = targetingSet[adUnitCode][wb_bidder]; 
         auctionManager.setStatusForBids(targetingSet[adUnitCode][targetingKey], CONSTANTS.BID_STATUS.BID_TARGETING_SET);
       }
     });
