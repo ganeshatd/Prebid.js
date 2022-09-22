@@ -410,7 +410,7 @@ $$PREBID_GLOBAL$$.setTargetingForGPTAsync = function (adUnit, customSlotMatching
     Object.keys(targetingSet[adUnitCode]).forEach((targetingKey) => {
       if (targetingKey === 'hb_adid') {
         console.log("-")
-        console.log(targetingSet[adUnitCode])
+        console.log(adUnitCode)
         // console.log(hb_pb)
         // console.log(hb_pb_appnexus)
 
