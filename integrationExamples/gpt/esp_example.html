@@ -105,7 +105,13 @@
         pbjs.initAdserverSet = true;
         googletag.cmd.push(function() {
             pbjs.que.push(function() {
-                pbjs.setTargetingForGPTAsync();
+                for(let unit of pbjs.adUnits){
+                    console.log("=adunit=")
+                    // console.log(unit.code)      
+                    var str_array = unit.code.split('_');  
+                    console.log(str_array[0])             
+                    pbjs.setTargetingForGPTAsync(str_array[0], null);
+                }
                 googletag.pubads().refresh();
             });
         });

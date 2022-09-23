@@ -390,7 +390,7 @@ $$PREBID_GLOBAL$$.getBidResponsesForAdUnitCode = function (adUnitCode) {
  * @param {function(object)} customSlotMatching gets a GoogleTag slot and returns a filter function for adUnitCode, so you can decide to match on either eg. return slot => { return adUnitCode => { return slot.getSlotElementId() === 'myFavoriteDivId'; } };
  * @alias module:pbjs.setTargetingForGPTAsync
  */
-$$PREBID_GLOBAL$$.setTargetingForGPTAsync = function (adUnit, customSlotMatching) {
+$$PREBID_GLOBAL$$.setTargetingForGPTAsync = function (adUnit, customSlotMatching, currencyConversion) {
   logInfo('Invoking $$PREBID_GLOBAL$$.setTargetingForGPTAsync', arguments);
   if (!isGptPubadsDefined()) {
     logError('window.googletag is not defined on the page');
@@ -409,55 +409,21 @@ $$PREBID_GLOBAL$$.setTargetingForGPTAsync = function (adUnit, customSlotMatching
   Object.keys(targetingSet).forEach((adUnitCode) => {
     Object.keys(targetingSet[adUnitCode]).forEach((targetingKey) => {
       if (targetingKey === 'hb_adid') {
-        console.log("-")
-        console.log(adUnitCode)
-        // console.log(hb_pb)
-        // console.log(hb_pb_appnexus)
-
-
-
-        // console.log("TESTQQ")
-        // var DEFAULT_CURRENCY_RATE_URL = 'https://cdn.jsdelivr.net/gh/prebid/currency-file@1/latest.json?date=2022091901';
-        // console.log("DDD3")
-        // fetch(DEFAULT_CURRENCY_RATE_URL)
-        // .then(response => response.json())
-        // .then(json => console.log(json));
-        // console.log("--")
-        
-        
-        // if (targetingKey === 'hb_adid') {
-        //     if (inflateAdUnit > 0) {
-        //       targetingSet[adUnitCode].hb_pb = (parseFloat(targetingSet[adUnitCode].hb_pb) + parseFloat(inflateAdUnit)).toString();
-        //       targetingSet[adUnitCode].hb_pb_appnexus = (parseFloat(targetingSet[adUnitCode].hb_pb_appnexus) + parseFloat(inflateAdUnit)).toString();
-        //     }
-        //     auctionManager.setStatusForBids(targetingSet[adUnitCode][targetingKey], CONSTANTS.BID_STATUS.BID_TARGETING_SET);
-        //   }
-
-
-
-
-
-
-
-
-
-        console.log("TESTQQ")
+        console.log("cccc")
+        var cc = currencyConversion.split(':');  
         var DEFAULT_CURRENCY_RATE_URL = 'https://cdn.jsdelivr.net/gh/prebid/currency-file@1/latest.json?date=2022091901';
-        console.log("DDD3")
         fetch(DEFAULT_CURRENCY_RATE_URL)
         .then(
           response => 
           response.json()
         )
         .then(json => {
-          console.log("-");
-          console.log(json.conversions["USD"])
+          let convertFrom = cc[0]
+          let convertTo = cc[1]
+          targetingSet[adUnitCode].hb_pb = parseFloat(targetingSet[adUnitCode].hb_pb) * parseFloat(json.conversions[convertFrom][convertTo])
+          targetingSet[adUnitCode][`hb_pb_${targetingSet[adUnitCode].hb_bidder}`] = parseFloat(targetingSet[adUnitCode][`hb_pb_${targetingSet[adUnitCode].hb_bidder}`])  * parseFloat(json.conversions[convertFrom][convertTo])
+          auctionManager.setStatusForBids(targetingSet[adUnitCode][targetingKey], CONSTANTS.BID_STATUS.BID_TARGETING_SET);          
         });
-        console.log("--")
-
-        console.log(targetingSet[adUnitCode].hb_pb)
-        console.log(targetingSet[adUnitCode])
-        auctionManager.setStatusForBids(targetingSet[adUnitCode][targetingKey], CONSTANTS.BID_STATUS.BID_TARGETING_SET);
       }
     });
   });

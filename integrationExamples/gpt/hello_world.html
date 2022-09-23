@@ -57,7 +57,12 @@
             pbjs.adserverRequestSent = true;
             googletag.cmd.push(function() {
                 pbjs.que.push(function() {
-                    pbjs.setTargetingForGPTAsync();
+                    for(let unit of pbjs.adUnits){
+                        console.log("=adunit=")
+                        console.log(unit.code)            
+                        pbjs.setTargetingForGPTAsync(unit.code, null, "USD:JPY");
+                    }                    
+                    // pbjs.setTargetingForGPTAsync();
                     googletag.pubads().refresh();
                 });
             });
