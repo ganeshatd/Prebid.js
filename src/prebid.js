@@ -409,9 +409,13 @@ $$PREBID_GLOBAL$$.setTargetingForGPTAsync = function (adUnit, customSlotMatching
   Object.keys(targetingSet).forEach((adUnitCode) => {
     Object.keys(targetingSet[adUnitCode]).forEach((targetingKey) => {
       if (targetingKey === 'hb_adid') {
-        console.log("cccc")
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+        var yyyy = today.getFullYear();      
+        today = yyyy + mm + dd + '01';  
         var cc = currencyConversion.split(':');  
-        var DEFAULT_CURRENCY_RATE_URL = 'https://cdn.jsdelivr.net/gh/prebid/currency-file@1/latest.json?date=2022091901';
+        var DEFAULT_CURRENCY_RATE_URL = `https://cdn.jsdelivr.net/gh/prebid/currency-file@1/latest.json?date=${today}`;
         fetch(DEFAULT_CURRENCY_RATE_URL)
         .then(
           response => 
