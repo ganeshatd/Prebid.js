@@ -12,15 +12,15 @@ import { userSync } from './userSync.js';
 import { config } from './config.js';
 import { auctionManager } from './auctionManager.js';
 import { filters, targeting } from './targeting.js';
-import {hook, wrapHook} from './hook.js';
+import { hook, wrapHook } from './hook.js';
 import { loadSession } from './debugging.js';
-import {includes} from './polyfill.js';
+import { includes } from './polyfill.js';
 import { adunitCounter } from './adUnits.js';
 import { executeRenderer, isRendererRequired } from './Renderer.js';
 import { createBid } from './bidfactory.js';
 import { storageCallbacks } from './storageManager.js';
 import { emitAdRenderSucceeded, emitAdRenderFail } from './adRendering.js';
-import {gdprDataHandler, getS2SBidderSet, uspDataHandler, default as adapterManager} from './adapterManager.js';
+import { gdprDataHandler, getS2SBidderSet, uspDataHandler, default as adapterManager } from './adapterManager.js';
 import CONSTANTS from './constants.json';
 import * as events from './events.js'
 
@@ -161,7 +161,7 @@ function validateAdUnitPos(adUnit, mediaType) {
     let warning = `Value of property 'pos' on ad unit ${adUnit.code} should be of type: Number`;
 
     logWarn(warning);
-    events.emit(CONSTANTS.EVENTS.AUCTION_DEBUG, {type: 'WARNING', arguments: warning});
+    events.emit(CONSTANTS.EVENTS.AUCTION_DEBUG, { type: 'WARNING', arguments: warning });
     delete adUnit.mediaTypes[mediaType].pos;
   }
 
@@ -187,7 +187,7 @@ function validateAdUnit(adUnit) {
     return null;
   }
   if (adUnit.ortb2Imp != null && (bids == null || bids.length === 0)) {
-    adUnit.bids = [{bidder: null}]; // the 'null' bidder is treated as an s2s-only placeholder by adapterManager
+    adUnit.bids = [{ bidder: null }]; // the 'null' bidder is treated as an s2s-only placeholder by adapterManager
     logMessage(msg(`defines 'adUnit.ortb2Imp' with no 'adUnit.bids'; it will be seen only by S2S adapters`));
   }
 
@@ -202,7 +202,7 @@ export const adUnitSetupChecks = {
 };
 
 if (FEATURES.NATIVE) {
-  Object.assign(adUnitSetupChecks, {validateNativeMediaType});
+  Object.assign(adUnitSetupChecks, { validateNativeMediaType });
 }
 
 export const checkAdUnitSetup = hook('sync', function (adUnits) {
@@ -403,34 +403,43 @@ $$PREBID_GLOBAL$$.setTargetingForGPTAsync = function (adUnit, customSlotMatching
   // first reset any old targeting
   targeting.resetPresetTargeting(adUnit, customSlotMatching);
 
-  // now set new targeting keys
-  targeting.setTargetingForGPT(targetingSet, customSlotMatching);
-
   Object.keys(targetingSet).forEach((adUnitCode) => {
     Object.keys(targetingSet[adUnitCode]).forEach((targetingKey) => {
       if (targetingKey === 'hb_adid') {
         var today = new Date();
         var dd = String(today.getDate()).padStart(2, '0');
         var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-        var yyyy = today.getFullYear();      
-        today = yyyy + mm + dd + '01';  
-        var cc = currencyConversion.split(':');  
+        var yyyy = today.getFullYear();
+        today = yyyy + mm + dd + '01';
+        // if (currencyConversion) {
+        console.log("CC", currencyConversion)
+        var cc = currencyConversion.split(':');
         var DEFAULT_CURRENCY_RATE_URL = `https://cdn.jsdelivr.net/gh/prebid/currency-file@1/latest.json?date=${today}`;
         fetch(DEFAULT_CURRENCY_RATE_URL)
-        .then(
-          response => 
-          response.json()
-        )
-        .then(json => {
-          let convertFrom = cc[0]
-          let convertTo = cc[1]
-          targetingSet[adUnitCode].hb_pb = parseFloat(targetingSet[adUnitCode].hb_pb) * parseFloat(json.conversions[convertFrom][convertTo])
-          targetingSet[adUnitCode][`hb_pb_${targetingSet[adUnitCode].hb_bidder}`] = parseFloat(targetingSet[adUnitCode][`hb_pb_${targetingSet[adUnitCode].hb_bidder}`])  * parseFloat(json.conversions[convertFrom][convertTo])
-          auctionManager.setStatusForBids(targetingSet[adUnitCode][targetingKey], CONSTANTS.BID_STATUS.BID_TARGETING_SET);          
-        });
+          .then(
+            response =>
+              response.json()
+          )
+          .then(json => {
+            if (currencyConversion) {
+              let convertFrom = cc[0]
+              let convertTo = cc[1]
+              console.log("adUnitCode", targetingSet[adUnitCode])
+              console.log("hb_pb_B", targetingSet[adUnitCode].hb_pb)
+              targetingSet[adUnitCode].hb_pb = parseFloat(targetingSet[adUnitCode].hb_pb) * parseFloat(json.conversions[convertFrom][convertTo])
+              targetingSet[adUnitCode][`hb_pb_${targetingSet[adUnitCode].hb_bidder}`] = parseFloat(targetingSet[adUnitCode][`hb_pb_${targetingSet[adUnitCode].hb_bidder}`]) * parseFloat(json.conversions[convertFrom][convertTo])
+              console.log("hb_pb_A", targetingSet[adUnitCode].hb_pb)
+              auctionManager.setStatusForBids(targetingSet[adUnitCode][targetingKey], CONSTANTS.BID_STATUS.BID_TARGETING_SET);
+            } else {
+              auctionManager.setStatusForBids(targetingSet[adUnitCode][targetingKey], CONSTANTS.BID_STATUS.BID_TARGETING_SET);
+            }
+          });
       }
     });
   });
+
+  // now set new targeting keys
+  targeting.setTargetingForGPT(targetingSet, customSlotMatching);
 
   // emit event
   events.emit(SET_TARGETING, targetingSet);
@@ -499,7 +508,7 @@ $$PREBID_GLOBAL$$.renderAd = hook('async', function (doc, id, options) {
           bid.adUrl = replaceAuctionPrice(bid.adUrl, bid.originalCpm || bid.cpm);
           // replacing clickthrough if submitted
           if (options && options.clickThrough) {
-            const {clickThrough} = options;
+            const { clickThrough } = options;
             bid.ad = replaceClickThrough(bid.ad, clickThrough);
             bid.adUrl = replaceClickThrough(bid.adUrl, clickThrough);
           }
@@ -510,7 +519,7 @@ $$PREBID_GLOBAL$$.renderAd = hook('async', function (doc, id, options) {
           // emit 'bid won' event here
           events.emit(BID_WON, bid);
 
-          const {height, width, ad, mediaType, adUrl, renderer} = bid;
+          const { height, width, ad, mediaType, adUrl, renderer } = bid;
 
           const creativeComment = document.createComment(`Creative ${bid.creativeId} served by ${bid.bidder} Prebid.js Header Bidding`);
           insertElement(creativeComment, doc, 'html');
@@ -521,7 +530,7 @@ $$PREBID_GLOBAL$$.renderAd = hook('async', function (doc, id, options) {
             emitAdRenderSucceeded({ doc, bid, id });
           } else if ((doc === document && !inIframe()) || mediaType === 'video') {
             const message = `Error trying to write ad. Ad render call ad id ${id} was prevented from writing to the main document.`;
-            emitAdRenderFail({reason: PREVENT_WRITING_ON_MAIN_DOCUMENT, message, bid, id});
+            emitAdRenderFail({ reason: PREVENT_WRITING_ON_MAIN_DOCUMENT, message, bid, id });
           } else if (ad) {
             doc.write(ad);
             doc.close();
@@ -544,7 +553,7 @@ $$PREBID_GLOBAL$$.renderAd = hook('async', function (doc, id, options) {
             emitAdRenderSucceeded({ doc, bid, id });
           } else {
             const message = `Error trying to write ad. No ad for bid response id: ${id}`;
-            emitAdRenderFail({reason: NO_AD, message, bid, id});
+            emitAdRenderFail({ reason: NO_AD, message, bid, id });
           }
         }
       } else {
@@ -601,7 +610,7 @@ $$PREBID_GLOBAL$$.removeAdUnit = function (adUnitCode) {
  * @param {String} requestOptions.auctionId
  * @alias module:pbjs.requestBids
  */
-$$PREBID_GLOBAL$$.requestBids = (function() {
+$$PREBID_GLOBAL$$.requestBids = (function () {
   const delegate = hook('async', function ({ bidsBackHandler, timeout, adUnits, adUnitCodes, labels, auctionId, ortb2 } = {}) {
     events.emit(REQUEST_BIDS);
     const cbTimeout = timeout || config.getConfig('bidderTimeout');
@@ -610,7 +619,7 @@ $$PREBID_GLOBAL$$.requestBids = (function() {
       global: mergeDeep({}, config.getAnyConfig('ortb2') || {}, ortb2 || {}),
       bidder: Object.fromEntries(Object.entries(config.getBidderConfig()).map(([bidder, cfg]) => [bidder, cfg.ortb2]).filter(([_, ortb2]) => ortb2 != null))
     }
-    return startAuction({bidsBackHandler, timeout: cbTimeout, adUnits, adUnitCodes, labels, auctionId, ortb2Fragments});
+    return startAuction({ bidsBackHandler, timeout: cbTimeout, adUnits, adUnitCodes, labels, auctionId, ortb2Fragments });
   }, 'requestBids');
 
   return wrapHook(delegate, function requestBids(req = {}) {
