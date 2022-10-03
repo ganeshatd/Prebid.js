@@ -406,34 +406,12 @@ $$PREBID_GLOBAL$$.setTargetingForGPTAsync = function (adUnit, customSlotMatching
   Object.keys(targetingSet).forEach((adUnitCode) => {
     Object.keys(targetingSet[adUnitCode]).forEach((targetingKey) => {
       if (targetingKey === 'hb_adid') {
-        var today = new Date();
-        var dd = String(today.getDate()).padStart(2, '0');
-        var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-        var yyyy = today.getFullYear();
-        today = yyyy + mm + dd + '01';
-        // if (currencyConversion) {
-        console.log("CC", currencyConversion)
-        var cc = currencyConversion.split(':');
-        var DEFAULT_CURRENCY_RATE_URL = `https://cdn.jsdelivr.net/gh/prebid/currency-file@1/latest.json?date=${today}`;
-        fetch(DEFAULT_CURRENCY_RATE_URL)
-          .then(
-            response =>
-              response.json()
-          )
-          .then(json => {
-            if (currencyConversion) {
-              let convertFrom = cc[0]
-              let convertTo = cc[1]
-              console.log("adUnitCode", targetingSet[adUnitCode])
-              console.log("hb_pb_B", targetingSet[adUnitCode].hb_pb)
-              targetingSet[adUnitCode].hb_pb = parseFloat(targetingSet[adUnitCode].hb_pb) * parseFloat(json.conversions[convertFrom][convertTo])
-              targetingSet[adUnitCode][`hb_pb_${targetingSet[adUnitCode].hb_bidder}`] = parseFloat(targetingSet[adUnitCode][`hb_pb_${targetingSet[adUnitCode].hb_bidder}`]) * parseFloat(json.conversions[convertFrom][convertTo])
-              console.log("hb_pb_A", targetingSet[adUnitCode].hb_pb)
-              auctionManager.setStatusForBids(targetingSet[adUnitCode][targetingKey], CONSTANTS.BID_STATUS.BID_TARGETING_SET);
-            } else {
-              auctionManager.setStatusForBids(targetingSet[adUnitCode][targetingKey], CONSTANTS.BID_STATUS.BID_TARGETING_SET);
-            }
-          });
+        if(currencyConversion){
+          let wb_bidder = 'hb_pb_' + targetingSet[adUnitCode].hb_bidder
+          targetingSet[adUnitCode].hb_pb = (parseFloat(targetingSet[adUnitCode].hb_pb) * parseFloat(currencyConversion)).toString();
+          targetingSet[adUnitCode][wb_bidder] = (parseFloat(targetingSet[adUnitCode][wb_bidder]) * parseFloat(currencyConversion)).toString();
+        }
+        auctionManager.setStatusForBids(targetingSet[adUnitCode][targetingKey], CONSTANTS.BID_STATUS.BID_TARGETING_SET);
       }
     });
   });
